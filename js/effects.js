@@ -118,14 +118,16 @@ export class Pellets {
     return best;
   }
 
+  // A pellet that was eaten or dissolved this update stays in the list until the next one,
+  // and its life may already be below zero: never draw it, and never hand arc() a negative radius.
   radius(p, unit) {
-    return 2.3 * unit * p.size * Math.min(1, p.life / 4);
+    return 2.3 * unit * Math.max(0, p.size) * Math.min(1, Math.max(0, p.life / 4));
   }
 
   draw(ctx, unit) {
     ctx.beginPath();
     for (const p of this.list) {
-      if (!p.landed) continue;
+      if (!p.landed || p.eaten) continue;
       const r = this.radius(p, unit);
       ctx.moveTo(p.x + r, p.y);
       ctx.arc(p.x, p.y, r, 0, TAU);
@@ -134,7 +136,7 @@ export class Pellets {
     ctx.fill();
     ctx.beginPath();
     for (const p of this.list) {
-      if (!p.landed) continue;
+      if (!p.landed || p.eaten) continue;
       const r = this.radius(p, unit) * 0.45;
       ctx.moveTo(p.x - r * 0.6 + r, p.y - r * 0.6);
       ctx.arc(p.x - r * 0.6, p.y - r * 0.6, r, 0, TAU);
@@ -158,7 +160,7 @@ export class Pellets {
   drawShadow(ctx, unit) {
     ctx.beginPath();
     for (const p of this.list) {
-      if (!p.landed) continue;
+      if (!p.landed || p.eaten) continue;
       const r = this.radius(p, unit);
       ctx.moveTo(p.x + r, p.y);
       ctx.arc(p.x, p.y, r, 0, TAU);
