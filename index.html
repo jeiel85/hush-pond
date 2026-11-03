@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>hush pond</title>
+  <meta name="description" content="A quiet koi pond for your browser. Tap to feed, drag to ripple the water, and let your mind drift.">
+  <meta name="theme-color" content="#0c3236">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="hush pond">
+  <meta property="og:description" content="A quiet koi pond for your browser. Tap to feed, drag to ripple the water, and let your mind drift.">
+  <meta property="og:url" content="https://jeiel85.github.io/hush-pond/">
+  <meta property="og:image" content="https://jeiel85.github.io/hush-pond/docs/preview.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <canvas id="pond" role="img" aria-label="A pond with koi swimming in it"></canvas>
+
+  <div class="wordmark" aria-hidden="true">hush pond</div>
+  <p class="hint" id="hint" aria-live="polite"></p>
+
+  <nav class="dock" id="dock" aria-label="Pond controls">
+    <button id="btn-time" class="time" type="button"><svg aria-hidden="true"><use href="#i-clock"/></svg><span id="time-label"></span></button>
+    <button id="btn-rain" type="button" aria-pressed="false"><svg aria-hidden="true"><use href="#i-rain"/></svg></button>
+    <button id="btn-sound" type="button" aria-pressed="false"><svg aria-hidden="true"><use href="#i-mute"/></svg></button>
+    <span class="sep" aria-hidden="true"></span>
+    <button id="btn-less" type="button"><svg aria-hidden="true"><use href="#i-minus"/></svg></button>
+    <span class="koi-count"><svg aria-hidden="true"><use href="#i-fish"/></svg><span id="koi-count">0</span></span>
+    <button id="btn-more" type="button"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
+    <span class="sep" aria-hidden="true"></span>
+    <button id="btn-full" type="button"><svg aria-hidden="true"><use href="#i-expand"/></svg></button>
+    <button id="btn-about" type="button"><svg aria-hidden="true"><use href="#i-info"/></svg></button>
+  </nav>
+
+  <dialog class="about" id="about"></dialog>
+
+  <noscript><p class="noscript">hush pond needs JavaScript to fill the pond.</p></noscript>
+
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+    <symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M3 18h18M7 18a5 5 0 0 1 10 0M12 3v6M9.5 5.5 12 3l2.5 2.5M4.8 11.8l1.4 1.4M19.2 11.8l-1.4 1.4"/></symbol>
+    <symbol id="i-sunset" viewBox="0 0 24 24"><path d="M3 18h18M7 18a5 5 0 0 1 10 0M12 3v6M9.5 6.5 12 9l2.5-2.5M4.8 11.8l1.4 1.4M19.2 11.8l-1.4 1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+    <symbol id="i-rain" viewBox="0 0 24 24"><path d="M7 15.5a4 4 0 1 1 .9-7.9A5.5 5.5 0 0 1 18.4 9.5 3 3 0 0 1 18 15.5"/><path d="M9 18l-1 2.5M13 18l-1 2.5M17 18l-1 2.5"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></symbol>
+    <symbol id="i-fish" viewBox="0 0 24 24"><path d="M2.5 12c2.6-3.7 6.4-5.5 10.3-4.4 1.9.5 3.6 1.7 5.2 3.4L21.5 8v8L18 13c-1.6 1.7-3.3 2.9-5.2 3.4-3.9 1.1-7.7-.7-10.3-4.4z"/><circle cx="7.4" cy="11.4" r=".5"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-shrink" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+</body>
+</html>
