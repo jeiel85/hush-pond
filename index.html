@@ -7,6 +7,11 @@
   <meta name="description" content="A quiet koi pond for your browser. Tap to feed, drag to ripple the water, and let your mind drift.">
   <meta name="theme-color" content="#0c3236">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="hush pond">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta property="og:type" content="website">
   <meta property="og:title" content="hush pond">
   <meta property="og:description" content="A quiet koi pond for your browser. Tap to feed, drag to ripple the water, and let your mind drift.">
@@ -32,6 +37,7 @@
     <button id="btn-more" type="button"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
     <span class="sep" aria-hidden="true"></span>
     <button id="btn-full" type="button"><svg aria-hidden="true"><use href="#i-expand"/></svg></button>
+    <button id="btn-install" type="button" hidden><svg aria-hidden="true"><use href="#i-install"/></svg></button>
     <button id="btn-about" type="button"><svg aria-hidden="true"><use href="#i-info"/></svg></button>
   </nav>
 
@@ -53,6 +59,7 @@
     <symbol id="i-fish" viewBox="0 0 24 24"><path d="M2.5 12c2.6-3.7 6.4-5.5 10.3-4.4 1.9.5 3.6 1.7 5.2 3.4L21.5 8v8L18 13c-1.6 1.7-3.3 2.9-5.2 3.4-3.9 1.1-7.7-.7-10.3-4.4z"/><circle cx="7.4" cy="11.4" r=".5"/></symbol>
     <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
     <symbol id="i-shrink" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></symbol>
+    <symbol id="i-install" viewBox="0 0 24 24"><path d="M12 4v10M8 10.5l4 4 4-4M5 15.5V19h14v-3.5"/></symbol>
     <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></symbol>
   </svg>
 </body>

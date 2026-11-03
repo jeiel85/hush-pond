@@ -1,5 +1,31 @@
 # Decisions
 
+## 2026-11-03 · Offline PWA: a service worker that caches one verified release
+
+**Context.** The pond should install as an app and open without a network (it is often left
+running as a wallpaper). That needs a service worker. The previous decision rejected a service
+worker *as the cache-busting mechanism*; here it is for offline use, and it builds on the hashed
+release instead of replacing it.
+
+**Decision.** `sw.js` precaches exactly the files of the release it was built with. The build
+writes that list into the worker together with each file's content hash, and the worker checks
+every response against its hash before storing anything: a release is cached whole or not at all,
+so a CDN edge still serving an older file right after a deploy can't produce a mixed offline copy
+(the install fails and the browser retries later). Pages are network-first and never written to
+the cache, so a newer page is never paired with older cached modules; offline, the release's own
+page is served. The page registers the worker only when the build stamp
+(`<meta name="hush-build">`) is present, so development servers never cache anything.
+
+**Alternatives considered.**
+- *Workbox* — mature, but a dependency and a build step for ~80 lines of worker logic.
+- *Stale-while-revalidate for everything* — simpler, but can serve and store files from two
+  releases at once, which is exactly the bug the hashed build exists to prevent.
+- *Installable without offline (manifest only)* — meets install criteria in current Chromium,
+  but a wallpaper or a phone in airplane mode would show an error page.
+
+**Reversal.** Ship a `sw.js` that unregisters itself and clears `hush-pond-*` caches, then remove
+the registration call; deleting the file alone would leave installed workers running.
+
 ## 2026-11-03 · Deploy Pages from a workflow that hashes module URLs
 
 **Context.** GitHub Pages serves every file with `Cache-Control: max-age=600` and ignores query

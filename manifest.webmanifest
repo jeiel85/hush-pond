@@ -1,0 +1,37 @@
+{
+  "id": "./",
+  "name": "hush pond",
+  "short_name": "hush pond",
+  "description": "A quiet koi pond to zone out with. Tap to feed, drag to ripple the water.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#0c3236",
+  "theme_color": "#0c3236",
+  "categories": ["entertainment", "lifestyle"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "docs/preview.jpg", "sizes": "1600x900", "type": "image/jpeg", "form_factor": "wide", "label": "Koi gathering in a lily pond by day" },
+    { "src": "docs/screenshot-narrow.jpg", "sizes": "540x1170", "type": "image/jpeg", "form_factor": "narrow", "label": "The pond on a phone" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Rainy night",
+      "url": "./?time=night&rain=1",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Wallpaper mode",
+      "description": "The pond without any buttons",
+      "url": "./?ui=0",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

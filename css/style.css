@@ -363,6 +363,19 @@ kbd {
   }
 }
 
+/* the narrowest phones (320px) still fit the whole dock, install button included */
+@media (max-width: 360px) {
+  .dock button,
+  .dock .time {
+    width: 32px;
+    height: 32px;
+  }
+
+  .koi-count {
+    min-width: 2.2em;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dock,
   .wordmark,
