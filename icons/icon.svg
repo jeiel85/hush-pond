@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full-bleed app icon. Key artwork stays inside the central 80% circle so it survives maskable crops. -->
+  <defs>
+    <radialGradient id="water" cx="44%" cy="40%" r="78%">
+      <stop offset="0" stop-color="#2f8b7d"/>
+      <stop offset="0.55" stop-color="#1c6764"/>
+      <stop offset="1" stop-color="#0e3f44"/>
+    </radialGradient>
+    <radialGradient id="pad" cx="40%" cy="38%" r="70%">
+      <stop offset="0" stop-color="#78ad5a"/>
+      <stop offset="1" stop-color="#2f6a33"/>
+    </radialGradient>
+    <linearGradient id="petal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fdf1f4"/>
+      <stop offset="1" stop-color="#ec7fa5"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <path id="body" d="M150 0C150-26 122-41 82-41C32-41-30-31-82-14C-101-8-112-6-120-4L-120 4C-112 6-101 8-82 14C-30 31 32 41 82 41C122 41 150 26 150 0Z"/>
+    <clipPath id="bodyClip"><use href="#body"/></clipPath>
+    <g id="fins">
+      <path d="M-114 0C-138-12-168-42-192-56C-178-24-174-8-160 0C-174 8-178 24-192 56C-168 42-138 12-114 0Z"/>
+      <path d="M66 34C58 62 36 84 12 90C22 68 36 50 50 36Z"/>
+      <path d="M66-34C58-62 36-84 12-90C22-68 36-50 50-36Z"/>
+      <path d="M-22 30C-30 46-42 56-56 60C-50 48-42 38-34 31Z"/>
+      <path d="M-22-30C-30-46-42-56-56-60C-50-48-42-38-34-31Z"/>
+    </g>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#water)"/>
+
+  <!-- sunlight caustics on the floor -->
+  <g fill="none" stroke="#fffbe6" stroke-opacity="0.11" stroke-width="3" stroke-linecap="round">
+    <path d="M-10 330C60 300 90 350 160 322S260 270 330 300 450 350 530 310"/>
+    <path d="M-10 410C70 380 120 430 190 404S300 360 370 392 470 430 530 400"/>
+    <path d="M90 520C110 450 70 410 100 340S140 230 120 160"/>
+    <path d="M400 530C380 460 430 420 400 350S360 250 390 180"/>
+  </g>
+
+  <!-- lily pad with a lotus, tucked into the corner -->
+  <g transform="translate(112 108)">
+    <circle cx="10" cy="14" r="96" fill="#000" opacity="0.2" filter="url(#soft)"/>
+    <path d="M0 0L90 -28A94 94 0 1 1 74 -58Z" fill="url(#pad)"/>
+    <g stroke="#d2f0b4" stroke-opacity="0.25" stroke-width="3" stroke-linecap="round">
+      <path d="M0 0L-60 72M0 0L-92 6M0 0L-56 -74M0 0L22 -90M0 0L84 46M0 0L18 92"/>
+    </g>
+    <g transform="translate(-8 6)">
+      <g fill="url(#petal)">
+        <path d="M0 0Q20-14 46 0Q20 14 0 0Z" transform="rotate(0)"/>
+        <path d="M0 0Q20-14 46 0Q20 14 0 0Z" transform="rotate(45)"/>
+        <path d="M0 0Q20-14 46 0Q20 14 0 0Z" transform="rotate(90)"/>
+        <path d="M0 0Q20-14 46 0Q20 14 0 0Z" transform="rotate(135)"/>
+        <path d="M0 0Q20-14 46 0Q20 14 0 0Z" transform="rotate(180)"/>
+        <path d="M0 0Q20-14 46 0Q20 14 0 0Z" transform="rotate(225)"/>
+        <path d="M0 0Q20-14 46 0Q20 14 0 0Z" transform="rotate(270)"/>
+        <path d="M0 0Q20-14 46 0Q20 14 0 0Z" transform="rotate(315)"/>
+      </g>
+      <g fill="#fbd3df">
+        <path d="M0 0Q14-10 30 0Q14 10 0 0Z" transform="rotate(22)"/>
+        <path d="M0 0Q14-10 30 0Q14 10 0 0Z" transform="rotate(94)"/>
+        <path d="M0 0Q14-10 30 0Q14 10 0 0Z" transform="rotate(166)"/>
+        <path d="M0 0Q14-10 30 0Q14 10 0 0Z" transform="rotate(238)"/>
+        <path d="M0 0Q14-10 30 0Q14 10 0 0Z" transform="rotate(310)"/>
+      </g>
+      <circle r="9" fill="#f2c84b"/>
+    </g>
+  </g>
+
+  <!-- ripples where the koi takes a pellet -->
+  <g fill="none" stroke="#e1f8f2" stroke-linecap="round">
+    <circle cx="374" cy="166" r="22" stroke-opacity="0.55" stroke-width="3.5"/>
+    <circle cx="374" cy="166" r="44" stroke-opacity="0.3" stroke-width="3"/>
+    <circle cx="374" cy="166" r="68" stroke-opacity="0.14" stroke-width="2.5"/>
+  </g>
+  <circle cx="374" cy="166" r="6" fill="#a8662d"/>
+
+  <!-- the koi: shadow on the floor, translucent fins, white body with red patches -->
+  <g transform="translate(262 274) rotate(-40) scale(0.9)">
+    <g transform="translate(16 18)" fill="#000" opacity="0.22" filter="url(#soft)">
+      <use href="#body"/>
+      <use href="#fins"/>
+    </g>
+    <g fill="#faf7f0" fill-opacity="0.62" stroke="#faf7f0" stroke-opacity="0.8" stroke-width="2">
+      <use href="#fins"/>
+    </g>
+    <use href="#body" fill="#f3efe6"/>
+    <g clip-path="url(#bodyClip)">
+      <g fill="#c92f1e">
+        <ellipse cx="104" cy="-4" rx="30" ry="24"/>
+        <ellipse cx="22" cy="-12" rx="38" ry="27"/>
+        <ellipse cx="-52" cy="8" rx="22" ry="15"/>
+      </g>
+      <use href="#body" fill="none" stroke="#062026" stroke-opacity="0.22" stroke-width="22"/>
+      <path d="M128 0L-80 0" stroke="#fffdf0" stroke-opacity="0.16" stroke-width="18" stroke-linecap="round"/>
+    </g>
+    <circle cx="124" cy="-21" r="4.5" fill="#141418" fill-opacity="0.85"/>
+    <circle cx="124" cy="21" r="4.5" fill="#141418" fill-opacity="0.85"/>
+  </g>
+</svg>

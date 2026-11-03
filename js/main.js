@@ -2,6 +2,7 @@ import { World, autoKoiCount } from './world.js';
 import { Ambience } from './audio.js';
 import { TIME_MODES, hourFor } from './sky.js';
 import { DEFAULTS, MAX_KOI, sanitize, fromParams, fpsCapFrom } from './settings.js';
+import { registerServiceWorker, setupInstallButton } from './pwa.js';
 import { clamp } from './util.js';
 
 const STORAGE_KEY = 'hush-pond:settings';
@@ -25,6 +26,7 @@ const STRINGS = {
     full: '전체 화면 (F)',
     exitFull: '전체 화면 끝내기 (F)',
     about: '정보',
+    install: '앱으로 설치',
     canvas: '잉어가 헤엄치는 연못',
     aboutBody: '아무 생각 없이 바라보기 좋은 작은 잉어 연못이에요. 먹이를 주거나, 물을 휘저어 보거나, 그냥 틀어 두세요.',
     keys: [
@@ -39,6 +41,7 @@ const STRINGS = {
       ['H', 'UI 숨기기'],
     ],
     wallpaper: '바탕화면으로 쓰려면 주소 끝에 <code>?ui=0</code>을 붙여 Lively Wallpaper(Windows)나 Plash(macOS)에 넣어 보세요.',
+    installTip: '앱으로 설치하면 오프라인에서도 열립니다. iPhone·iPad는 공유 → <b>홈 화면에 추가</b>를 누르세요.',
     source: 'GitHub에서 소스 보기',
     close: '닫기',
   },
@@ -56,6 +59,7 @@ const STRINGS = {
     full: 'Fullscreen (F)',
     exitFull: 'Exit fullscreen (F)',
     about: 'About',
+    install: 'Install as an app',
     canvas: 'A pond with koi swimming in it',
     aboutBody: 'A small koi pond to stare at while your mind wanders. Feed them, stir the water, or just leave it running.',
     keys: [
@@ -70,6 +74,7 @@ const STRINGS = {
       ['H', 'Hide the UI'],
     ],
     wallpaper: 'For a live wallpaper, add <code>?ui=0</code> to the address and load it in Lively Wallpaper (Windows) or Plash (macOS).',
+    installTip: 'Installed as an app it opens offline too. On iPhone and iPad, tap Share → <b>Add to Home Screen</b>.',
     source: 'Source on GitHub',
     close: 'Close',
   },
@@ -251,6 +256,7 @@ const ui = {
   full: $('btn-full'),
   fullIcon: $('btn-full').querySelector('use'),
   about: $('btn-about'),
+  install: $('btn-install'),
   dialog: $('about'),
   hint: $('hint'),
 };
@@ -262,6 +268,8 @@ ui.more.title = T.more;
 ui.more.setAttribute('aria-label', T.more);
 ui.about.title = T.about;
 ui.about.setAttribute('aria-label', T.about);
+ui.install.title = T.install;
+ui.install.setAttribute('aria-label', T.install);
 ui.time.title = T.timeTitle;
 ui.hint.textContent = T.hint;
 if (!document.fullscreenEnabled) ui.full.hidden = true;
@@ -340,6 +348,7 @@ function openAbout() {
     <p>${T.aboutBody}</p>
     <dl class="keys">${keys}</dl>
     <p class="small">${T.wallpaper}</p>
+    <p class="small">${T.installTip}</p>
     <footer>
       <a href="${REPO_URL}" target="_blank" rel="noopener">${T.source}</a>
       <form method="dialog"><button class="close" type="submit">${T.close}</button></form>
@@ -354,6 +363,8 @@ ui.less.addEventListener('click', () => changeKoi(-1));
 ui.more.addEventListener('click', () => changeKoi(1));
 ui.full.addEventListener('click', toggleFullscreen);
 ui.about.addEventListener('click', openAbout);
+setupInstallButton(ui.install);
+registerServiceWorker();
 document.addEventListener('fullscreenchange', sync);
 audio.setRain(settings.rain);
 sync();
