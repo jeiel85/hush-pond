@@ -12,19 +12,25 @@
 
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const out = resolve(root, process.argv[2] ?? '_site');
 const PUBLISH = ['index.html', 'favicon.svg', 'css', 'js', 'docs'];
+// Never wiped: the published sources, the build itself, and git's data.
+const PROTECTED = new Set([...PUBLISH, 'scripts', '.github', '.git'].map((p) => p.toLowerCase()));
 
 function fail(message) {
   console.error(`build-pages: ${message}`);
   process.exit(1);
 }
 
-if (out === root || PUBLISH.some((item) => !relative(join(root, item), out).startsWith('..'))) {
-  fail(`refusing to build into ${out}`);
+// The output folder is deleted before every build, so it must be a fresh subfolder of the repo:
+// not the repo, not one of its ancestors (`..`), not elsewhere on disk, not a source folder.
+const rel = relative(root, out);
+const top = rel.split(sep)[0].toLowerCase();
+if (!rel || rel.startsWith('..') || isAbsolute(rel) || PROTECTED.has(top)) {
+  fail(`refusing to build into ${out} — use a new folder inside the repository, e.g. _site`);
 }
 
 const versioned = (path) => {
