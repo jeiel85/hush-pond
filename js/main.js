@@ -156,7 +156,9 @@ const perf = {
     this.frames++;
     if (this.span < 3) return;
     const fps = this.frames / this.span;
-    const target = fpsCap || 60;
+    // The callback rate follows the display (or a host's throttle), not our cap, so the cap only
+    // lowers what counts as healthy — e.g. ?fps=30 for a host that runs pages at 30 fps.
+    const target = Math.min(fpsCap || 60, 60);
     this.reset();
     if (fps < Math.min(35, target * 0.75)) {
       this.fastWindows = 0;
@@ -201,13 +203,21 @@ window.addEventListener('resize', () => {
 
 let last = performance.now(); // last rendered frame
 let lastTick = last; // last animation callback, rendered or skipped by the cap
+let nextDue = 0; // with ?fps: when the next capped frame is due (ms)
 function frame(now) {
   requestAnimationFrame(frame);
   // judge cost by the callback rate: it drops when frames get expensive, with or without a cap
   perf.sample((now - lastTick) / 1000);
   lastTick = now;
+  if (fpsCap) {
+    // Deadlines advance by whole intervals, so the average rate never exceeds the cap; the small
+    // allowance only absorbs timestamp jitter so a 30 fps cap lands on every other 60 Hz refresh.
+    const interval = 1000 / fpsCap;
+    if (now < nextDue - Math.min(2, interval * 0.2)) return;
+    nextDue += interval;
+    if (nextDue <= now) nextDue = now + interval; // fell behind: restart the grid instead of bursting
+  }
   const gap = (now - last) / 1000;
-  if (fpsCap && gap < 1 / fpsCap - 0.002) return; // not this display refresh; wait for the next slot
   last = now;
   if (!world.ready) return;
   // Slow or throttled frames are split into small steps so the pond keeps real time instead of
