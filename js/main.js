@@ -1,11 +1,14 @@
 import { World, autoKoiCount } from './world.js';
 import { Ambience } from './audio.js';
 import { TIME_MODES, hourFor } from './sky.js';
+import { DEFAULTS, MAX_KOI, sanitize, fromParams, fpsCapFrom } from './settings.js';
 import { clamp } from './util.js';
 
 const STORAGE_KEY = 'hush-pond:settings';
 const REPO_URL = 'https://github.com/jeiel85/hush-pond';
-const MAX_KOI = 30;
+const MAX_STEP = 1 / 30; // largest simulation step that keeps steering stable
+const MAX_CATCH_UP = 0.25; // after a stall (hidden tab), fast-forward at most this many seconds
+const MIN_QUALITY = 0.55;
 
 const STRINGS = {
   ko: {
@@ -87,7 +90,7 @@ function readStored() {
   }
 }
 
-let stored = readStored();
+let stored = sanitize(readStored());
 function persist(patch) {
   stored = { ...stored, ...patch };
   try {
@@ -98,18 +101,12 @@ function persist(patch) {
 }
 
 const params = new URLSearchParams(location.search);
-const fromUrl = {};
-if (params.has('koi')) fromUrl.koi = clamp(parseInt(params.get('koi'), 10) || 0, 0, MAX_KOI);
-if (TIME_MODES.includes(params.get('time'))) fromUrl.time = params.get('time');
-if (params.has('rain')) fromUrl.rain = params.get('rain') === '1';
-if (params.has('sound')) fromUrl.sound = params.get('sound') === '1';
-if (/^\d+$/.test(params.get('seed') ?? '')) fromUrl.seed = Number(params.get('seed')) >>> 0;
-const settings = { sound: false, rain: false, time: 'auto', koi: 0, fed: false, ...stored, ...fromUrl };
-if (!Number.isInteger(settings.seed)) {
+const fpsCap = fpsCapFrom(params);
+const settings = { ...DEFAULTS, ...stored, ...fromParams(params) };
+if (settings.seed === undefined) {
   settings.seed = (Math.random() * 2 ** 32) >>> 0;
   persist({ seed: settings.seed });
 }
-if (!TIME_MODES.includes(settings.time)) settings.time = 'auto';
 
 // ---------- world ----------
 
@@ -123,7 +120,7 @@ const world = new World(settings.seed, {
   onGulp: () => audio.gulp(),
 });
 
-let quality = 1; // lowered automatically if the device struggles
+let quality = 1; // render-resolution scale, tuned by `perf` below
 function resize() {
   const w = window.innerWidth;
   const h = window.innerHeight;
@@ -137,43 +134,104 @@ function resize() {
   }
 }
 
+// Adaptive resolution: render fewer pixels while frames are slow, win them back when there is headroom.
+const perf = {
+  span: 0,
+  frames: 0,
+  fastWindows: 0,
+  ceiling: 1, // set to the last good level when a step up proves too much, so quality doesn't seesaw
+  lastRaise: -Infinity,
+  beforeRaise: 1,
+  reset() {
+    this.span = 0;
+    this.frames = 0;
+  },
+  sample(gap) {
+    // a stall (hidden tab, throttled host, resize) says nothing about what a frame costs
+    if (gap > MAX_CATCH_UP) {
+      this.reset();
+      return;
+    }
+    this.span += gap;
+    this.frames++;
+    if (this.span < 3) return;
+    const fps = this.frames / this.span;
+    // The callback rate follows the display (or a host's throttle), not our cap, so the cap only
+    // lowers what counts as healthy — e.g. ?fps=30 for a host that runs pages at 30 fps.
+    const target = Math.min(fpsCap || 60, 60);
+    this.reset();
+    if (fps < Math.min(35, target * 0.75)) {
+      this.fastWindows = 0;
+      if (quality <= MIN_QUALITY) return;
+      if (world.time - this.lastRaise < 20) {
+        this.ceiling = this.beforeRaise;
+        this.lastRaise = -Infinity;
+      }
+      setQuality(Math.max(MIN_QUALITY, quality * 0.8));
+    } else if (fps >= target * 0.92) {
+      this.fastWindows++;
+      // after two smooth minutes, give a refused step another chance (conditions change)
+      if (this.fastWindows >= 40) this.ceiling = 1;
+      if (this.fastWindows >= 3 && quality < this.ceiling) {
+        this.fastWindows = 0;
+        this.beforeRaise = quality;
+        this.lastRaise = world.time;
+        setQuality(Math.min(this.ceiling, quality / 0.8));
+      }
+    } else {
+      this.fastWindows = 0;
+    }
+  },
+};
+
+function setQuality(q) {
+  quality = q;
+  resize();
+  perf.reset();
+}
+
 let resizeTimer = 0;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(resize, 120);
+  resizeTimer = setTimeout(() => {
+    resize();
+    perf.reset();
+  }, 120);
 });
 
 // ---------- loop ----------
 
-let last = performance.now();
-let perfWindow = 0;
-let perfFrames = 0;
+let last = performance.now(); // last rendered frame
+let lastTick = last; // last animation callback, rendered or skipped by the cap
+let nextDue = 0; // with ?fps: when the next capped frame is due (ms)
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000);
-  last = now;
-  if (!world.ready) {
-    requestAnimationFrame(frame);
-    return;
+  requestAnimationFrame(frame);
+  // judge cost by the callback rate: it drops when frames get expensive, with or without a cap
+  perf.sample((now - lastTick) / 1000);
+  lastTick = now;
+  if (fpsCap) {
+    // Deadlines advance by whole intervals, so the average rate never exceeds the cap; the small
+    // allowance only absorbs timestamp jitter so a 30 fps cap lands on every other 60 Hz refresh.
+    const interval = 1000 / fpsCap;
+    if (now < nextDue - Math.min(2, interval * 0.2)) return;
+    nextDue += interval;
+    if (nextDue <= now) nextDue = now + interval; // fell behind: restart the grid instead of bursting
   }
-  world.update(dt, { hour: hourFor(settings.time), rain: settings.rain });
+  const gap = (now - last) / 1000;
+  last = now;
+  if (!world.ready) return;
+  // Slow or throttled frames are split into small steps so the pond keeps real time instead of
+  // slowing down; a long stall is capped so the koi don't teleport when the tab comes back.
+  const elapsed = Math.min(gap, MAX_CATCH_UP);
+  const steps = Math.max(1, Math.ceil(elapsed / MAX_STEP));
+  const env = { hour: hourFor(settings.time), rain: settings.rain };
+  for (let i = 0; i < steps; i++) world.update(elapsed / steps, env);
   world.render(ctx);
   audio.setNight(world.palette.fireflies);
-
-  // adaptive resolution: if we sit below ~35 fps for a few seconds, render fewer pixels
-  perfWindow += dt;
-  perfFrames++;
-  if (perfWindow > 3) {
-    if (perfFrames / perfWindow < 35 && quality > 0.55 && world.time > 4) {
-      quality = Math.max(0.55, quality * 0.8);
-      resize();
-    }
-    perfWindow = 0;
-    perfFrames = 0;
-  }
-  requestAnimationFrame(frame);
 }
 requestAnimationFrame((now) => {
   last = now;
+  lastTick = now;
   frame(now);
 });
 
@@ -301,12 +359,18 @@ audio.setRain(settings.rain);
 sync();
 resize();
 
-// Browsers only start audio from a user gesture, so a remembered "sound on" resumes on the first one.
+// Browsers only start audio from a user gesture, so a remembered "sound on" starts on the first one.
+// The same gesture also revives a context the OS interrupted (a call, another app taking audio).
 function unlockAudio() {
-  if (settings.sound && !audio.on) setSound(true);
+  if (!settings.sound) return;
+  if (audio.on) audio.resume();
+  else setSound(true);
 }
 window.addEventListener('pointerdown', unlockAudio, { capture: true });
 window.addEventListener('keydown', unlockAudio, { capture: true });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) audio.resume();
+});
 
 // ---------- idle: the UI and cursor fade away so only the pond is left ----------
 

@@ -12,7 +12,12 @@ export class Ambience {
   async enable() {
     if (!this.ctx) this.build();
     this.on = true;
-    await this.ctx.resume();
+    try {
+      await this.ctx.resume();
+    } catch (err) {
+      this.on = false;
+      throw err;
+    }
     const t = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(t);
     this.master.gain.setTargetAtTime(0.55, t, 0.8);
@@ -29,8 +34,15 @@ export class Ambience {
     this.master.gain.cancelScheduledValues(t);
     this.master.gain.setTargetAtTime(0, t, 0.25);
     setTimeout(() => {
-      if (!this.on) this.ctx.suspend();
+      if (!this.on && this.ctx.state === 'running') this.ctx.suspend();
     }, 1500);
+  }
+
+  // Mobile browsers suspend or interrupt the context (calls, other apps, backgrounding).
+  // Resuming may need a user gesture, so callers retry on the next one.
+  resume() {
+    if (!this.on || !this.ctx || this.ctx.state === 'running') return;
+    this.ctx.resume().catch((err) => console.warn('hush pond: audio could not resume yet', err));
   }
 
   setRain(on) {
@@ -89,6 +101,12 @@ export class Ambience {
     this.timers.set(name, setTimeout(tick, (min + Math.random() * (max - min)) * 1000));
   }
 
+  // While the context is suspended its clock stands still, so anything scheduled then would
+  // all fire at once on resume. Sounds are only made while it is actually running.
+  get live() {
+    return this.on && this.ctx?.state === 'running';
+  }
+
   blip(from, to, peak, decay) {
     const ctx = this.ctx;
     const t = ctx.currentTime + 0.01;
@@ -106,19 +124,20 @@ export class Ambience {
 
   // a single drop landing somewhere on the pond
   drip() {
+    if (!this.live) return;
     const f = 650 + Math.random() * 700;
     this.blip(f, f * 1.9, 0.04, 0.12);
   }
 
   // food hitting the water
   plop() {
-    if (!this.on || !this.ctx) return;
+    if (!this.live) return;
     this.blip(260, 620, 0.13, 0.17);
   }
 
   // a koi taking a pellet
   gulp() {
-    if (!this.on || !this.ctx) return;
+    if (!this.live) return;
     const now = this.ctx.currentTime;
     if (now - this.lastGulp < 0.08) return;
     this.lastGulp = now;
@@ -127,7 +146,7 @@ export class Ambience {
   }
 
   cricket() {
-    if (this.night < 0.4) return;
+    if (!this.live || this.night < 0.4) return;
     const ctx = this.ctx;
     const t0 = ctx.currentTime + 0.02;
     const o = ctx.createOscillator();
