@@ -105,6 +105,17 @@ python -m http.server 8417
 
 그다음 <http://localhost:8417> 을 여세요. (`npx serve .` 같은 다른 정적 서버도 괜찮습니다.)
 
+## 📦 배포
+
+`main`에 푸시하면 GitHub Actions(`.github/workflows/pages.yml`)가 `scripts/build-pages.mjs`로 `_site/`를 만들어 GitHub Pages에 올립니다. 빌드는 스타일시트와 모든 모듈 주소에 내용 해시(`?v=…`)를 붙이고 import map으로 묶습니다. 덕분에 배포 직후에도 브라우저가 새 파일과 캐시된 옛 파일을 섞어 쓰지 않습니다(이유와 대안은 [DECISIONS.md](DECISIONS.md)). PR에서는 빌드만 돌려 import 경로를 검사합니다.
+
+배포본을 로컬에서 미리 보려면:
+
+```bash
+node scripts/build-pages.mjs
+python -m http.server 8417 --directory _site
+```
+
 ## 📁 구조
 
 ```
@@ -123,6 +134,10 @@ hush-pond/
 │   ├── sky.js        # 시간대 팔레트
 │   ├── audio.js      # Web Audio 생성형 사운드
 │   └── util.js       # 수학·시드 난수 도우미
+├── scripts/
+│   └── build-pages.mjs  # 배포본 빌드: 모듈 주소 해시 + import map
+├── .github/workflows/
+│   └── pages.yml     # PR 빌드 검사, main 푸시 시 Pages 배포
 └── docs/             # README 스크린샷
 ```
 
