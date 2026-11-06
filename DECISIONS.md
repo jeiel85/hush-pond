@@ -1,5 +1,30 @@
 # Decisions
 
+## 2026-11-06 · App id: `/hush-pond/`
+
+**Context.** `manifest.webmanifest` had `"id": "./"`. An id resolves against the **origin of
+`start_url`** (`https://jeiel85.github.io`), not against the manifest's folder, so it became
+`https://jeiel85.github.io/` — the same id as eight other Pages projects on that origin that also
+use `"./"`. Chrome treated them all as one app: with one of them installed it offered no install
+for the others, and it even rewrote an installed app's start URL to a different game (seen in the
+owner's Chrome sync data). Chrome DevTools `Page.getAppId` recommends `/hush-pond/`.
+
+**Decision.** `"id": "/hush-pond/"`, this project's own path on the origin. `scripts/build-pages.mjs`
+fails the build if the id is anything else.
+
+**Alternatives considered.**
+- *Drop the id* — it would default to `start_url` (`./` → `/hush-pond/`), the same value today, but
+  the app's identity would then change whenever `start_url` gains a query string.
+
+**Trade-off accepted.** The id is the app's identity: an app installed before this change no longer
+receives this manifest and has to be removed and installed again. Keeping the old id was not an
+option, since it is shared with other apps. Saved settings live in the origin's storage and are
+unaffected.
+
+**No worker change needed.** The worker already fetches every precached file with
+`cache: 'no-cache'` and checks it against the release hash, and the manifest's hash is part of the
+release version, so a new manifest reaches the cache on the first visit after the deploy.
+
 ## 2026-11-03 · Offline PWA: a service worker that caches one verified release
 
 **Context.** The pond should install as an app and open without a network (it is often left

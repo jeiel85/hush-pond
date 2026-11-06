@@ -98,6 +98,9 @@ writeFileSync(join(out, 'sw.js'), worker);
 
 // Install prompts quietly fail on a missing icon or screenshot, so check every file the manifest names.
 const manifest = JSON.parse(readFileSync(join(root, 'manifest.webmanifest'), 'utf8'));
+// The app id resolves against the origin (jeiel85.github.io), not the manifest's folder: "./" would be the same
+// app as every other project on that origin, and Chrome would offer no install while one of them is installed.
+if (manifest.id !== '/hush-pond/') fail(`manifest.webmanifest id must be "/hush-pond/", not ${JSON.stringify(manifest.id)} (see DECISIONS.md)`);
 const named = [
   ...(manifest.icons ?? []),
   ...(manifest.screenshots ?? []),
